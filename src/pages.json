@@ -3,14 +3,14 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "坡总の小站"
+				"navigationBarTitleText": "🔞 · 未成年人请在家长的陪伴下浏览！"
 			}
 		}
 	],
 	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "坡总の小站",
-		"navigationBarBackgroundColor": "#F8F8F8",
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "🔞 · 未成年人请在家长的陪伴下浏览！",
+		"navigationBarBackgroundColor": "#000000",
 		"backgroundColor": "#F8F8F8"
 	}
 }

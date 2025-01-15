@@ -8,7 +8,8 @@
       '--text-color': themeObj[currentTheme].text,
     }">
     <div class="search">
-      <input class="search-input" type="text" v-model="searchValue" placeholder="请输入商品名称！">
+      <input class="search-input" type="text" v-model="searchValue" placeholder=" " @focus="() => isSearchInputFocus = true" @blur="isSearchInputFocus = false">
+      <div class="search-input-placeholder" v-if="!(isSearchInputFocus || searchValue)" :style="{color: themeObj[currentTheme].primary}">请输入商品名称！</div>
       <div class="common-btn category-search">按品类搜索</div>
       <div class="common-btn all-search">全局搜索</div>
     </div>
@@ -139,6 +140,7 @@ const themeObj = {
 
 const isEdit = ref(false)
 const searchValue = ref('')
+const isSearchInputFocus = ref(false)
 const selectedSortType = ref('time')
 const commodityCount = ref(0)
 const isSortAllow = ref(false)
@@ -228,6 +230,7 @@ const handleTheme = (params: { label: string; value: string }) => {
   height: 100vh;
   font-size: 16px;
   .search {
+    position: relative;
     display: flex;
     align-items: center;
     width: calc(100% - 10px);
@@ -240,6 +243,13 @@ const handleTheme = (params: { label: string; value: string }) => {
     .search-input {
       flex: 1;
       color: var(--primary-color);
+    }
+    .search-input-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 5px;
+      transform: translateY(-50%);
+      pointer-events: none;
     }
     .category-search {
       margin: 0 5px;
