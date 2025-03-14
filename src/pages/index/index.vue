@@ -10,22 +10,32 @@
     <div class="search">
       <input class="search-input" type="text" v-model="searchValue" placeholder=" " @focus="() => isSearchInputFocus = true" @blur="isSearchInputFocus = false">
       <div class="search-input-placeholder" v-if="!(isSearchInputFocus || searchValue)" :style="{color: themeObj[currentTheme].primary}">请输入商品名称！</div>
-      <div class="common-btn category-search">按品类搜索</div>
-      <div class="common-btn all-search">全局搜索</div>
+      <div class="common-btn category-search" @click="categorySearch">按品类搜索</div>
+      <div class="common-btn all-search" @click="allSearch">全局搜索</div>
+      <div class="common-btn" @click="cancelSearch">取消</div>
     </div>
     <div class="content">
       <div class="left">
         <div class="banner">
-          <div class="category-item" v-for="item in categoryList" :key="item.id">
-            <div class="name">{{ item.name }}</div>
-            <div class="common-btn common-delete delete" v-if="isEdit"></div>
-          </div>
+          <template v-if="data.categoryList?.length">
+            <div
+              class="category-item"
+              @click="categoryItemClick(index)"
+              :class="{'category-item-active': index === currentCategoryIndex}"
+              v-for="(item, index) in data.categoryList"
+              :key="item.id"
+            >
+              <div class="name">{{ item.name }}</div>
+              <div class="common-btn common-delete delete" v-if="isEdit" @click.stop="deleteCategory(item.id)"></div>
+            </div>
+          </template>
+          <div v-else class="common-empty-text">请先新增品类！</div>
         </div>
-        <div class="common-btn add-category">+品类</div>
+        <div class="common-btn add-category" @click="addCategory">+品类</div>
       </div>
       <div class="right">
         <div class="operate">
-          <div class="common-btn sort" @click="() => isSortAllow = !isSortAllow">
+          <div class="common-btn sort" @click="openSortClick">
             排序
             <div class="sort-list" :class="[{ 'sort-list-allow': isSortAllow }]">
               <div class="sort-list-item" v-for="item in selectedSortTypeOptions" :key="item.value" @click.stop="handleSort(item)">
@@ -44,34 +54,90 @@
           </div>
         </div>
         <div class="banner">
-          <div class="commodity-card" v-for="item in categoryList[0].children" :key="item.id">
-            <div class="common-btn common-delete delete" v-if="isEdit"></div>
-            <div class="name">{{ item.name }}</div>
-            <div class="bottom-info">
-              <div class="price">{{ item.price }}￥</div>
-              <div class="count-cover">
-                <div class="common-btn decrease">-</div>
-                <div class="count">
-                  <input v-if="isEdit" type="text" v-model="commodityCount">
-                  <span v-else>{{ commodityCount }}</span>
+          <template v-if="commodityListComp?.length">
+            <div class="commodity-card" v-for="item in commodityListComp" :key="item.id">
+              <div class="common-btn common-delete delete" v-if="isEdit" @click.stop="deleteCommodity(item.id)"></div>
+              <div class="name">{{ item.name }}</div>
+              <div class="bottom-info">
+                <div class="price">{{ item.price }}￥</div>
+                <div class="count-cover">
+                  <div class="common-btn decrease" @click="decrease(item.id)">-</div>
+                  <div class="count">
+                    <input v-if="isEdit" type="text" v-model="item.count">
+                    <span v-else>{{ item.count }}</span>
+                  </div>
+                  <div class="common-btn increase" @click="increase(item.id)">+</div>
                 </div>
-                <div class="common-btn increase">+</div>
               </div>
             </div>
-          </div>
+          </template>
+          <div v-else-if="isSearchCommodityList" class="common-empty-text">搜索不到指定产品！</div>
+          <div v-else-if="data.categoryList?.length" class="common-empty-text">该品类暂无产品！</div>
+          <div v-else class="common-empty-text">请先新增品类！</div>
         </div>
-        <div class="common-btn add-commodity">+产品</div>
+        <div class="common-btn add-commodity" @click="addCommodity">+产品</div>
       </div>
     </div>
+    <!-- 新增品类 -->
+    <uni-popup ref="addCategoryDialog" type="dialog" >
+      <uni-popup-dialog
+        type="bottom"
+        :mask-click="false"
+        mode="input"
+        title="新增品类"
+        placeholder="请输入品类名"
+        @confirm="addCategoryDialogInputConfirm"
+      >
+      </uni-popup-dialog>
+    </uni-popup>
+    <!-- 新增产品 -->
+    <uni-popup ref="addCommodityDialog" type="dialog" >
+      <uni-popup-dialog
+        type="bottom"
+        :mask-click="false"
+        title="新增产品"
+        @confirm="addCommodityDialogConfirm"
+      >
+        <div>
+          <div>
+            产品名称:
+            <input placeholder="名称" v-model="commodityForm.name" class="common-input" />
+          </div>
+          <div>
+            产品价格:
+            <input placeholder="价格" v-model="commodityForm.price" class="common-input" />
+          </div>
+          <div>
+            产品数量:
+            <input placeholder="数量" v-model="commodityForm.count" class="common-input" />
+          </div>
+        </div>
+      </uni-popup-dialog>
+    </uni-popup>
   </view>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
+
+interface CommodityType {
+  name: string;
+  price: string;
+  id: string;
+  count: string;
+  time: number;
+}
+interface DataType {
+  categoryList: {
+    id: string;
+    name: string
+    commodityList: CommodityType[]
+  }[]
+}
 
 const selectedSortTypeOptions = [
   { label: "按添加时间排序", value: 'time' },
-  { label: "按库存排序", value: 'num' },
+  { label: "按库存排序", value: 'count' },
 ]
 const themeOptions = [
   {
@@ -138,33 +204,136 @@ const themeObj = {
   },
 }
 
+const data = ref<DataType>({
+  categoryList: [],
+})
 const isEdit = ref(false)
 const searchValue = ref('')
 const isSearchInputFocus = ref(false)
-const selectedSortType = ref('time')
-const commodityCount = ref(0)
+const currentCategoryIndex = ref(0)
 const isSortAllow = ref(false)
 const currentSort = ref('time')
 const isThemeAllow = ref(false)
 const currentTheme = ref('pink')
-const categoryList = ref(Array.from({ length: 20 }, (_, i) => ({
-  name: '品类'+i,
-  id: i,
-  children: Array.from({ length: 20 }, (_, i) => ({
-    name: '德莱文的斧子'+i,
-    price: '798',
-    id: '123' + i
-  }))
-})))
+const addCategoryDialog = ref<any>()
+const addCommodityDialog = ref<any>()
+const commodityForm = ref({
+  name: '',
+  price: '',
+  count: '',
+})
+const searchCommodityList = ref<CommodityType[]>([])
+const isSearchCommodityList = ref(false)
 
-const handleEdit = () => {
-  isEdit.value = !isEdit.value
+const commodityListComp = computed(() => isSearchCommodityList.value ? searchCommodityList.value : data.value?.categoryList?.[currentCategoryIndex.value]?.commodityList)
+
+const categorySearch = () => {
+  if (!data.value?.categoryList?.length) {
+    return
+  }
+  isSearchCommodityList.value = true
+  searchCommodityList.value = data.value.categoryList![currentCategoryIndex.value]!.commodityList.filter(item => item.name.includes(searchValue.value))
 }
-const sortTypeChange = (val: string) => {
-  console.log('sortTypeChange', val);
+const allSearch = () => {
+  if (!data.value?.categoryList?.length) {
+    return
+  }
+  isSearchCommodityList.value = true
+  const arr = data.value.categoryList.flatMap(item => item.commodityList)
+  searchCommodityList.value = arr.filter(item => item.name.includes(searchValue.value))
+}
+const cancelSearch = () => {
+  isSearchCommodityList.value = false
+  searchCommodityList.value = []
+  searchValue.value = ''
+}
+
+const categoryItemClick = (index: number) => {
+  currentCategoryIndex.value = index
+}
+const addCategory = () => {
+  addCategoryDialog.value?.open();
+}
+const addCategoryDialogInputConfirm = async(val?: string) => {
+  if (val?.trim()) {
+    data.value.categoryList.unshift({
+      id: generateUniqueId(),
+      name: val.trim(),
+      commodityList: []
+    })
+    setStorage(JSON.stringify(data.value))
+    await nextTick()
+    currentCategoryIndex.value = 0
+  }
+}
+const deleteCategory = (id: string) => {
+  data.value.categoryList = data.value.categoryList.filter(item => item.id !== id)
+}
+
+const addCommodity = () => {
+  commodityForm.value = {
+    name: '',
+    price: '',
+    count: '',
+  }
+  addCommodityDialog.value?.open();
+}
+const addCommodityDialogConfirm = async() => {
+  const { name, price, count } = commodityForm.value
+  if (!name || !price || !count) {
+    return
+  }
+  data.value.categoryList[currentCategoryIndex.value].commodityList.unshift({
+    id: generateUniqueId(),
+    name,
+    price,
+    count: (Number(count) <= 0 ? 0 : count).toString(),
+    time: +new Date()
+  })
+  setStorage(JSON.stringify(data.value))
+}
+const deleteCommodity = (id: string) => {
+  data.value.categoryList![currentCategoryIndex.value]!.commodityList = data.value.categoryList?.[currentCategoryIndex.value]?.commodityList?.filter(item => item.id !== id)
+}
+const decrease = (id: string) => {
+  if (isSearchCommodityList.value) {
+    return
+  }
+  const itemInfo = data.value.categoryList?.[currentCategoryIndex.value]?.commodityList?.find(item => item.id === id)
+  const count = Number(itemInfo?.count ?? 0)
+  if (count !== 0) {
+    itemInfo!.count = (count - 1).toString()
+  }
+  setStorage(JSON.stringify(data.value))
+}
+const increase = (id: string) => {
+  if (isSearchCommodityList.value) {
+    return
+  }
+  const itemInfo = data.value.categoryList?.[currentCategoryIndex.value]?.commodityList?.find(item => item.id === id)
+  itemInfo!.count = (Number(itemInfo?.count ?? 0) + 1).toString()
+  setStorage(JSON.stringify(data.value))
+}
+
+const openSortClick = () => {
+  if (isSearchCommodityList.value) {
+    return
+  }
+  isSortAllow.value = !isSortAllow.value
+}
+const handleEdit = () => {
+  if (isSearchCommodityList.value) {
+    return
+  }
+  isEdit.value = !isEdit.value
+  setStorage(JSON.stringify(data.value))
+  if (!isEdit.value) {
+    currentCategoryIndex.value = 0
+  }
 }
 const handleSort = (params: { label: string; value: string }) => {
   currentSort.value = params.value
+  data.value.categoryList?.[currentCategoryIndex.value]?.commodityList?.sort((a, b) => Number(b[currentSort.value as 'count' | 'time']) - Number(a[currentSort.value as 'count' | 'time']))
   isSortAllow.value = false
 }
 const handleTheme = (params: { label: string; value: string }) => {
@@ -172,6 +341,52 @@ const handleTheme = (params: { label: string; value: string }) => {
   isThemeAllow.value = false
 }
 
+const getData = async () => {
+  try {
+    const res = await getStorage()
+    if (res?.data) {
+      data.value = JSON.parse(res?.data)
+    }
+  } catch (error) {
+    console.log('error', error);
+  }
+}
+
+onMounted(() => {
+  getData()
+})
+
+function generateUniqueId() {
+  const timestamp = Date.now().toString(36); // 将时间戳转换为 36 进制字符串
+  const random = Math.random().toString(36).substring(2, 8); // 生成随机字符串
+  return timestamp + random; // 组合时间戳和随机数
+}
+
+const setStorage = (data: any) => {
+  return uni.setStorage({
+    key: 'formData',
+    data,
+    // success: function () {
+    //   console.log('setData-success');
+    // }
+  });
+}
+const getStorage = () => {
+  return uni.getStorage({
+    key: 'formData',
+    // success: function (res) {
+    //   console.log(res.data);
+    // }
+  });
+}
+const removeStorage = () => {
+  return uni.removeStorage({
+    key: 'formData',
+    // success: function (res) {
+    //   console.log('success');
+    // }
+  });
+}
 </script>
 
 <style lang="scss">
@@ -201,6 +416,15 @@ const handleTheme = (params: { label: string; value: string }) => {
     line-height: 12px;
     color: var(--text-color);
   }
+}
+.common-input {
+  border: 1px solid #eee;
+  border-radius: 2px;
+  padding: 2px 5px;
+  margin: 5px 0px 10px 0px;
+}
+.common-empty-text {
+  color: var(--primary-color);
 }
 
 // input::placeholder {
@@ -254,7 +478,9 @@ const handleTheme = (params: { label: string; value: string }) => {
     .category-search {
       margin: 0 5px;
     }
-    .all-search {}
+    .all-search {
+      margin-right: 5px;
+    }
   }
   .content {
     display: flex;
@@ -295,6 +521,12 @@ const handleTheme = (params: { label: string; value: string }) => {
           }
           &+.category-item {
             margin-top: 5px;
+          }
+        }
+        .category-item-active {
+          background: var(--primary-color);
+          .name {
+            color: #fff;
           }
         }
       }

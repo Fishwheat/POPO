@@ -899,18 +899,10 @@
   resolved "https://registry.npmmirror.com/@dcloudio/uni-app-vue/-/uni-app-vue-3.0.0-4030620241128001.tgz#ce94fd1a85a5b83d92e1e0e96bde67d1f89b486b"
   integrity sha512-BxblHfDWWmDW2+9M8TJwKNKCbvlmH0VGJvRYudF46vl7+6sRml/06YBy9KjhTRIY4WetN7IVYuSuA0PbH2HG+w==
 
-"@dcloudio/uni-app@3.0.0-4030620241128001":
-  version "3.0.0-4030620241128001"
-  resolved "https://registry.npmmirror.com/@dcloudio/uni-app/-/uni-app-3.0.0-4030620241128001.tgz#f47cf8722b34e9a47a4b14f41f84176f55cd058b"
-  integrity sha512-J+hIUT+d2RIIKygO+2tOgHPgWjFtnpTTLLBYd2QsXtxWGDqV2CRvf2FG4KzNf82P46OjUh54O+EJwvAcMFItCg==
-  dependencies:
-    "@dcloudio/uni-cloud" "3.0.0-4030620241128001"
-    "@dcloudio/uni-components" "3.0.0-4030620241128001"
-    "@dcloudio/uni-i18n" "3.0.0-4030620241128001"
-    "@dcloudio/uni-push" "3.0.0-4030620241128001"
-    "@dcloudio/uni-shared" "3.0.0-4030620241128001"
-    "@dcloudio/uni-stat" "3.0.0-4030620241128001"
-    "@vue/shared" "3.4.21"
+"@dcloudio/uni-app@^2.0.2-4050620250311002":
+  version "2.0.2-4050620250311002"
+  resolved "https://registry.npmmirror.com/@dcloudio/uni-app/-/uni-app-2.0.2-4050620250311002.tgz#fb0774ae37108d903c1ff568b14c555a837872a1"
+  integrity sha512-kt28o7eFvdqQZT8G2Z1fqgps2beRe6KxY/ZJL6AgCxBvDtjYQMLBNkiGkpbdgKKaCRrXXyq2BrOU4+fy5QZuFg==
 
 "@dcloudio/uni-automator@3.0.0-4030620241128001":
   version "3.0.0-4030620241128001"
@@ -1221,13 +1213,6 @@
     parse-css-font "^4.0.0"
     postcss "^8.4.35"
 
-"@dcloudio/uni-push@3.0.0-4030620241128001":
-  version "3.0.0-4030620241128001"
-  resolved "https://registry.npmmirror.com/@dcloudio/uni-push/-/uni-push-3.0.0-4030620241128001.tgz#4c5578ca82deaa94e1b16870ef13c53a1b948367"
-  integrity sha512-zp5P9KY/pXV7mqFC1lsfqwt0sqT4cRKfS7vgyWb4CRiz4dwxhgFkQwIVyCNhpb1idzyEeK++HWf7dPDO/qU+8A==
-  dependencies:
-    "@dcloudio/uni-cli-shared" "3.0.0-4030620241128001"
-
 "@dcloudio/uni-quickapp-webview@3.0.0-4030620241128001":
   version "3.0.0-4030620241128001"
   resolved "https://registry.npmmirror.com/@dcloudio/uni-quickapp-webview/-/uni-quickapp-webview-3.0.0-4030620241128001.tgz#721e087f9194a9be8a0bd40218194b72686fa410"
@@ -1251,14 +1236,10 @@
   resolved "https://registry.npmmirror.com/@dcloudio/uni-stacktracey/-/uni-stacktracey-3.0.0-4030620241128001.tgz#586b7228066ea343a180bb9e5d0ef53f5a2a1924"
   integrity sha512-LJiiKBYYtHME4m0nAPM4VswPXxUopkx3XXkeHBQzEvNGGZZzxrDPpwZavpsifbJml5a47KOO9PsmoBiZymIxqQ==
 
-"@dcloudio/uni-stat@3.0.0-4030620241128001":
-  version "3.0.0-4030620241128001"
-  resolved "https://registry.npmmirror.com/@dcloudio/uni-stat/-/uni-stat-3.0.0-4030620241128001.tgz#9fad000eefece910bb9e9eb23f4bca336389ab90"
-  integrity sha512-0WCvT+FIKxy1MNryK5nhKH1sBZchu5KTWv/nVZo+NmTwsvcdUf4rWei3DYq6Qo0ehBasVeW8nIIYoAwB7pDQsw==
-  dependencies:
-    "@dcloudio/uni-cli-shared" "3.0.0-4030620241128001"
-    "@dcloudio/uni-shared" "3.0.0-4030620241128001"
-    debug "^4.3.3"
+"@dcloudio/uni-ui@^1.5.7":
+  version "1.5.7"
+  resolved "https://registry.npmmirror.com/@dcloudio/uni-ui/-/uni-ui-1.5.7.tgz#74daef1f537ae2b9320e51f44163fe56bdd19c87"
+  integrity sha512-DugxSIrQrze1FLdUOj9a+JEQ0bHGjnJTcGUK1mN/MivKg7nuKJBRWk5Ipa9sUdoBznX6ndz5h2e7Uao6x1CdCw==
 
 "@dcloudio/vite-plugin-uni@3.0.0-4030620241128001":
   version "3.0.0-4030620241128001"
