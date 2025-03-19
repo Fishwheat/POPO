@@ -286,9 +286,20 @@ const exportClick = async () => {
 const injectClick = (val?: string) => {
   injectDataDialog.value?.open();
 }
-const injectDataDialogInputConfirm = (val?: string) => {
-  setStorage(val)
-  getData()
+const injectDataDialogInputConfirm = async(val?: string) => {
+  if (val?.trim() && isJSON(val?.trim())
+  && ((typeof JSON.parse(val?.trim())) !== 'string')
+  && ((typeof JSON.parse(val?.trim())) !== 'number')
+  && ((typeof JSON.parse(val?.trim())) !== 'boolean')
+  ) {
+    const res = await getStorage()
+    try {
+      setStorage(val)
+    } catch (error) {
+      setStorage(res?.data)
+    }
+    getData()
+  }
 }
 
 const categoryItemClick = (index: number) => {
@@ -299,14 +310,27 @@ const addCategory = () => {
 }
 const addCategoryDialogInputConfirm = async(val?: string) => {
   if (val?.trim()) {
-    data.value.categoryList.unshift({
-      id: generateUniqueId(),
-      name: val.trim(),
-      commodityList: []
-    })
-    setStorage(JSON.stringify(data.value))
-    await nextTick()
-    currentCategoryIndex.value = 0
+    try {
+      data.value.categoryList.unshift({
+        id: generateUniqueId(),
+        name: val.trim(),
+        commodityList: []
+      })
+      setStorage(JSON.stringify(data.value))
+      await nextTick()
+      currentCategoryIndex.value = 0
+    } catch (error) {
+      clearStorage()
+      data.value.categoryList = []
+      data.value.categoryList.unshift({
+        id: generateUniqueId(),
+        name: val.trim(),
+        commodityList: []
+      })
+      setStorage(JSON.stringify(data.value))
+      await nextTick()
+      currentCategoryIndex.value = 0
+    }
   }
 }
 const deleteCategory = (id: string) => {
@@ -314,12 +338,14 @@ const deleteCategory = (id: string) => {
 }
 
 const addCommodity = () => {
-  commodityForm.value = {
-    name: '',
-    price: '',
-    count: '',
+  if (data.value.categoryList.length) {
+    commodityForm.value = {
+      name: '',
+      price: '',
+      count: '',
+    }
+    addCommodityDialog.value?.open();
   }
-  addCommodityDialog.value?.open();
 }
 const addCommodityDialogConfirm = async() => {
   const { name, price, count } = commodityForm.value
@@ -399,12 +425,25 @@ const getData = async () => {
     }
   } catch (error) {
     console.log('error', error);
+    data.value = {
+      categoryList: [],
+    }
+    clearStorage()
   }
 }
 
 onMounted(() => {
   getData()
 })
+
+function isJSON(str: string) {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 function generateUniqueId() {
   const timestamp = Date.now().toString(36); // 将时间戳转换为 36 进制字符串
@@ -437,6 +476,10 @@ const removeStorage = () => {
     // }
   });
 }
+const clearStorage = () => {
+  uni.clearStorage()
+}
+
 </script>
 
 <style lang="scss">
