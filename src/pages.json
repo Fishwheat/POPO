@@ -3,15 +3,14 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "🔞 · 未成年人请在家长的陪伴下浏览！"
+				"navigationBarTitleText": "POPO仓库"
 			}
 		}
 	],
 	"globalStyle": {
-		"navigationBarTextStyle": "white",
-		"navigationBarTitleText": "🔞 · 未成年人请在家长的陪伴下浏览！",
-		"navigationBarBackgroundColor": "#000000",
-		"backgroundColor": "#F8F8F8"
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "POPO仓库",
+		"navigationBarBackgroundColor": "#F8F8F8"
 	},
 	"easycom": {
     "autoscan": true,

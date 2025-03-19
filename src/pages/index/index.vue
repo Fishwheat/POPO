@@ -10,12 +10,19 @@
     <div class="search">
       <input class="search-input" type="text" v-model="searchValue" placeholder=" " @focus="() => isSearchInputFocus = true" @blur="isSearchInputFocus = false">
       <div class="search-input-placeholder" v-if="!(isSearchInputFocus || searchValue)" :style="{color: themeObj[currentTheme].primary}">请输入商品名称！</div>
+    </div>
+    <div class="search-btn">
       <div class="common-btn category-search" @click="categorySearch">按品类搜索</div>
       <div class="common-btn all-search" @click="allSearch">全局搜索</div>
       <div class="common-btn" @click="cancelSearch">取消</div>
+      <div class="search-btn-right">
+        <div class="btn-line"></div>
+        <div class="common-btn" @click="exportClick">导出</div>
+        <div class="common-btn" @click="injectClick">导入</div>
+      </div>
     </div>
     <div class="content">
-      <div class="left">
+      <div class="left" :class="{'allow-left': isAllowLeft, 'allow-right-left': isAllowRight}">
         <div class="banner">
           <template v-if="data.categoryList?.length">
             <div
@@ -31,9 +38,10 @@
           </template>
           <div v-else class="common-empty-text">请先新增品类！</div>
         </div>
+        <div class="category-allow" @click="allowCategory"></div>
         <div class="common-btn add-category" @click="addCategory">+品类</div>
       </div>
-      <div class="right">
+      <div class="right" :class="{'allow-right': isAllowLeft, 'allow-right-right': isAllowRight}">
         <div class="operate">
           <div class="common-btn sort" @click="openSortClick">
             排序
@@ -75,6 +83,7 @@
           <div v-else-if="data.categoryList?.length" class="common-empty-text">该品类暂无产品！</div>
           <div v-else class="common-empty-text">请先新增品类！</div>
         </div>
+        <div class="category-allow-right" @click="allowRightCategory"></div>
         <div class="common-btn add-commodity" @click="addCommodity">+产品</div>
       </div>
     </div>
@@ -112,6 +121,18 @@
             <input placeholder="数量" v-model="commodityForm.count" class="common-input" />
           </div>
         </div>
+      </uni-popup-dialog>
+    </uni-popup>
+    <!-- 导入数据 -->
+    <uni-popup ref="injectDataDialog" type="dialog" >
+      <uni-popup-dialog
+        type="bottom"
+        :mask-click="false"
+        mode="input"
+        title="导入数据（请确认好数据，将会全面覆盖当前已有数据！）"
+        placeholder="请粘贴数据！"
+        @confirm="injectDataDialogInputConfirm"
+      >
       </uni-popup-dialog>
     </uni-popup>
   </view>
@@ -217,6 +238,7 @@ const isThemeAllow = ref(false)
 const currentTheme = ref('pink')
 const addCategoryDialog = ref<any>()
 const addCommodityDialog = ref<any>()
+const injectDataDialog = ref<any>()
 const commodityForm = ref({
   name: '',
   price: '',
@@ -224,6 +246,8 @@ const commodityForm = ref({
 })
 const searchCommodityList = ref<CommodityType[]>([])
 const isSearchCommodityList = ref(false)
+const isAllowLeft = ref(false)
+const isAllowRight= ref(false)
 
 const commodityListComp = computed(() => isSearchCommodityList.value ? searchCommodityList.value : data.value?.categoryList?.[currentCategoryIndex.value]?.commodityList)
 
@@ -246,6 +270,25 @@ const cancelSearch = () => {
   isSearchCommodityList.value = false
   searchCommodityList.value = []
   searchValue.value = ''
+}
+
+const exportClick = async () => {
+  const res = await getStorage()
+  if (res?.data) {
+    uni.setClipboardData({
+      data: res?.data,
+      // success: function () {
+      //   console.log('success');
+      // }
+    });
+  }
+}
+const injectClick = (val?: string) => {
+  injectDataDialog.value?.open();
+}
+const injectDataDialogInputConfirm = (val?: string) => {
+  setStorage(val)
+  getData()
 }
 
 const categoryItemClick = (index: number) => {
@@ -339,6 +382,13 @@ const handleSort = (params: { label: string; value: string }) => {
 const handleTheme = (params: { label: string; value: string }) => {
   currentTheme.value = params.value
   isThemeAllow.value = false
+}
+
+const allowCategory = () => {
+  isAllowLeft.value = !isAllowLeft.value
+}
+const allowRightCategory = () => {
+  isAllowRight.value = !isAllowRight.value
 }
 
 const getData = async () => {
@@ -482,10 +532,29 @@ const removeStorage = () => {
       margin-right: 5px;
     }
   }
+  .search-btn {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 10px);
+    height: 40px;
+    margin: 0 0 5px 5px;
+    .search-btn-right {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      margin-left: auto;
+      .btn-line {
+        height: 100%;
+        width: 2px;
+        background: var(--primary-color);
+        margin: 0 5px;
+      }
+    }
+  }
   .content {
     display: flex;
     width: 100%;
-    height: calc(100% - 50px);
+    height: calc(100% - 50px - 50px);
     padding: 0 5px;
     box-sizing: border-box;
     .left {
@@ -530,11 +599,38 @@ const removeStorage = () => {
           }
         }
       }
+      .category-allow {
+        position: absolute;
+        left: 5px;
+        bottom: 12px;
+        width: 20px;
+        height: 20px;
+        background: var(--primary-color);
+        z-index: 10;
+        &::after, &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 6px;
+          width: 100%;
+          height: 2px;
+          background: var(--text-color);
+        }
+        &::before {
+          top: 12px;
+        }
+      }
       .add-category {
         position: absolute;
         right: 5px;
         bottom: 5px;
       }
+    }
+    .allow-left {
+      width: 25%;
+    }
+    .allow-right-left {
+      width: calc(50%);
     }
     .right {
       position: relative;
@@ -670,11 +766,38 @@ const removeStorage = () => {
           }
         }
       }
+      .category-allow-right {
+        position: absolute;
+        left: 5px;
+        bottom: 12px;
+        width: 20px;
+        height: 20px;
+        background: var(--primary-color);
+        z-index: 10;
+        &::after, &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 6px;
+          width: 100%;
+          height: 2px;
+          background: var(--text-color);
+        }
+        &::before {
+          top: 12px;
+        }
+      }
       .add-commodity {
         position: absolute;
         right: 5px;
         bottom: 5px;
       }
+    }
+    .allow-right {
+      width: calc(75% - 2px);
+    }
+    .allow-right-right {
+      width: calc(50% - 2px);
     }
   }
 }
